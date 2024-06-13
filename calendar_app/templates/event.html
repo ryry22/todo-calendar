@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>イベント詳細</title>
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-top: 0;
+}
+
+h2 {
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+p {
+    font-size: 16px;
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+.event {
+    border: 1px solid #ccc;
+    padding: 16px;
+    margin-bottom: 16px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.event-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 16px;
+}
+
+.edit-link,
+.delete-button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #555;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+.edit-link:hover,
+.delete-button:hover {
+    color: #f44336;
+}
+
+.form-container {
+    margin-top: 20px;
+}
+
+.form-container label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-container input[type="text"],
+.form-container textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical;
+}
+
+.form-container button[type="submit"] {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    margin-top: 10px;
+    background-color: #4caf50;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.form-container button[type="submit"]:hover {
+    background-color: #45a049;
+}
+
+.back-link {
+    display: block;
+    margin-top: 20px;
+    text-align: center;
+    color: #555;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.back-link:hover {
+    color: #f44336;
+}
+    </style>
+</head>
+<body>
+    <h1>{{ year }}年{{ month }}月{{ day }}日 イベント</h1>
+    <div class="container">
+        <div id="event-list">
+            {% for event in events %}
+                {% if event.date.year == year and event.date.month == month and event.date.day == day %}
+                    <div class="event">
+                        <h2>{{ event.title }}</h2>
+                        <p>{{ event.description }}</p>
+                        <div class="event-actions">
+                            <a class="edit-link" href="{% url 'event_edit' year=year month=month day=day event_id=event.id %}">編集</a>
+                            <button class="delete-button" data-event-id="{{ event.id }}">削除</button>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <form method="post" class="form-container">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">保存</button>
+    </form>
+
+    <a href="{% url 'calendar' year month %}" class="back-link">カレンダーに戻る</a>
+</div>
+<script>
+    document.querySelectorAll('.delete-button').forEach(button => {
+        button.addEventListener('click', showConfirmation);
+    });
+
+    function showConfirmation(event) {
+        event.preventDefault();
+
+        const eventId = event.target.dataset.eventId;
+        const eventElement = event.target.closest('.event'); // 該当するイベント要素を取得
+
+        const confirmation = confirm('本当にイベントを削除しますか？');
+        if (confirmation) {
+            deleteEvent(eventId, eventElement);
+        }
+    }
+
+    function deleteEvent(eventId, eventElement) {
+        fetch(`/events/${eventId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            // イベント要素を削除
+            eventElement.remove();
+        })
+        .catch(error => {
+            console.error('削除のリクエストでエラーが発生しました:', error);
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Myカレンダー</title>
+    <style>
+        /* カレンダーのスタイルを指定するためのCSS */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 auto;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 25px;
+            text-align: center;
+            border: 1px solid #ccc;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+
+        a {
+            text-decoration: none;
+            color: #333;
+        }
+
+        .day {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            padding: 5px;
+        }
+
+        .day-number {
+            position: absolute;
+            transform: translate(-100%, -100%);
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .day-number:hover {
+            background-color: #f2f2f2;
+        }
+
+        .select-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .select-container select {
+            padding: 8px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        .select-container select:focus {
+            outline: none;
+            border-color: #999;
+        }
+
+        .select-container select option {
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+<h1>カレンダー</h1>
+
+<div class="select-container">
+<select id="year" onchange="updateCalendar()">
+    {% for y in years %}
+    <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}年</option>
+    {% endfor %}
+</select>
+<select id="month" onchange="updateCalendar()">
+    {% for m in months %}
+    <option value="{{ m }}" {% if m == current_month %}selected{% endif %}>{{ m }}月</option>
+    {% endfor %}
+</select>
+</div>
+
+<table id="calendar">
+    <thead>
+    <tr>
+        <th>月</th>
+        <th>火</th>
+        <th>水</th>
+        <th>木</th>
+        <th>金</th>
+        <th>土</th>
+        <th>日</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for week in calendar_rows %}
+    <tr>
+        {% for day in week %}
+        {% if day %}
+        <td>
+            <div class="day">
+                <a href="{% url 'event' current_year current_month day.0 %}">
+                    <div class="day-number">{{ day.0 }}</div>
+                    {% for event in events %}
+                    {% if event.date.year == current_year and event.date.month == current_month and event.date.day == day.0 %}
+                        <p style="color:blue">・{{ event.title|slice:":10" }}</p>
+                    {% endif %}
+                    {% endfor %}
+                </a>
+            </div>
+        </td>
+        {% else %}
+        <td></td>
+        {% endif %}
+        {% endfor %}
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    function updateCalendar() {
+        var year = document.getElementById('year').value;
+        var month = document.getElementById('month').value;
+        var url = '/calendar/' + year + '/' + month;
+        window.location.href = url;
+    }
+</script>
+</body>
+</html>
